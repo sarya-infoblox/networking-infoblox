@@ -43,27 +43,24 @@ PRINT_LINE = 80
 
 LOG = logging.getLogger(__name__)
 
-cli_opts = [
-    cfg.BoolOpt('script',
-                short='s',
-                default=False,
-                help='scripting mode'),
-    cfg.StrOpt('username',
-               short='u',
-               help='username of superuser'),
-    cfg.StrOpt('password',
-               short='p',
-               help='password of superuser'),
-    cfg.StrOpt('participating_network_views',
-               short='pnv',
-               help='participating network views')
-]
-
-cfg.CONF.register_cli_opts(cli_opts)
-cfg.CONF(args=sys.argv[1:])
-
-
 def main():
+    cli_opts = [
+        cfg.BoolOpt('script',
+                    short='s',
+                    default=False,
+                    help='scripting mode'),
+        cfg.StrOpt('username',
+                   short='u',
+                   help='username of superuser'),
+        cfg.StrOpt('password',
+                   short='p',
+                   help='password of superuser'),
+        cfg.StrOpt('participating_network_views',
+                   short='pnv',
+                   help='participating network views')
+    ]
+    common_config.register_common_config_options()
+    cfg.CONF.register_cli_opts(cli_opts)
     cfg.CONF(args=sys.argv[1:],
              default_config_files=['/etc/neutron/neutron.conf'])
     common_config.setup_logging()

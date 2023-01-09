@@ -64,6 +64,7 @@ cfg.CONF(args=sys.argv[1:])
 
 
 def main():
+    common_config.register_common_config_options()
     cfg.CONF(args=sys.argv[1:],
              default_config_files=['/etc/neutron/neutron.conf'])
     common_config.setup_logging()

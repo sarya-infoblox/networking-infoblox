@@ -21,7 +21,6 @@ from sqlalchemy.sql.expression import true
 from neutron.db.models import address_scope as address_scope_db
 from neutron.db.models import external_net as external_net_db
 from neutron.db.models import l3 as l3_db
-from neutron_lib.db import api as db_api
 from neutron.db import models_v2
 
 from networking_infoblox.neutron.common import constants as const
@@ -30,8 +29,6 @@ from networking_infoblox.neutron.db import infoblox_models as ib_models
 
 
 # Grid Management
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_WRITER
 def get_grids(session, grid_id=None, grid_name=None, grid_status=None):
     q = session.query(ib_models.InfobloxGrid)
     if grid_id:
@@ -42,8 +39,7 @@ def get_grids(session, grid_id=None, grid_name=None, grid_status=None):
         q = q.filter(ib_models.InfobloxGrid.grid_status == grid_status)
     return q.all()
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_WRITER
+
 def add_grid(session, grid_id, grid_name, grid_connection, grid_status, gm_id):
     grid = ib_models.InfobloxGrid(grid_id=grid_id,
                                   grid_name=grid_name,
@@ -53,8 +49,7 @@ def add_grid(session, grid_id, grid_name, grid_connection, grid_status, gm_id):
     session.add(grid)
     return grid
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_WRITER
+
 def update_grid(session, grid_id, grid_name=None, grid_connection=None,
                 grid_status=None):
     update_data = dict()
@@ -70,7 +65,7 @@ def update_grid(session, grid_id, grid_name=None, grid_connection=None,
             filter_by(grid_id=grid_id).\
             update(update_data)
 
-@db_api.CONTEXT_WRITER
+
 def remove_grids(session, grid_ids):
     if grid_ids and isinstance(grid_ids, list):
         with session.begin(subtransactions=True):
@@ -80,8 +75,6 @@ def remove_grids(session, grid_ids):
 
 
 # Grid Members
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_READER
 def get_members(session, member_id=None, grid_id=None, member_name=None,
                 member_type=None, member_status=None):
     q = session.query(ib_models.InfobloxGridMember)
@@ -98,8 +91,7 @@ def get_members(session, member_id=None, grid_id=None, member_name=None,
                      member_status)
     return q.all()
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_READER
+
 def search_members(session, member_ids=None, member_names=None,
                    member_types=None, member_statuses=None):
     q = session.query(ib_models.InfobloxGridMember)
@@ -116,8 +108,7 @@ def search_members(session, member_ids=None, member_names=None,
                      in_(member_statuses))
     return q.all()
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_WRITER
+
 def add_member(session, member_id, grid_id, member_name, member_ip,
                member_ipv6, member_type, member_status, member_dhcp_ip,
                member_dhcp_ipv6, member_dns_ip, member_dns_ipv6,
@@ -137,8 +128,7 @@ def add_member(session, member_id, grid_id, member_name, member_ip,
     session.add(member)
     return member
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_WRITER
+
 def update_member(session, member_id, grid_id, member_name=None,
                   member_ip=None, member_ipv6=None,
                   member_type=None, member_status=None,
@@ -172,8 +162,7 @@ def update_member(session, member_id, grid_id, member_name=None,
             filter_by(member_id=member_id, grid_id=grid_id).\
             update(update_data)
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_WRITER
+
 def remove_members(session, member_ids):
     if member_ids and isinstance(member_ids, list):
         with session.begin(subtransactions=True):
@@ -184,8 +173,6 @@ def remove_members(session, member_ids):
 
 
 # Network Views
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_READER
 def get_network_views(session, network_view_id=None, network_view=None,
                       grid_id=None, authority_member_id=None, shared=None,
                       dns_view=None, internal_network_view=None,
@@ -216,8 +203,7 @@ def get_network_views(session, network_view_id=None, network_view=None,
         q = q.filter(ib_models.InfobloxNetworkView.grid_id == grid_id)
     return q.all()
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_READER
+
 def get_network_view_by_mapping(session, network_view_id=None, grid_id=None,
                                 network_id=None, subnet_id=None):
     netview_mapping = get_network_view_mappings(
@@ -239,8 +225,7 @@ def get_network_view_by_mapping(session, network_view_id=None, grid_id=None,
         participated=True)
     return netviews
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_WRITER
+
 def update_network_view(session, network_view_id, network_view,
                         authority_member_id, shared, dns_view, participated,
                         is_default):
@@ -253,15 +238,13 @@ def update_network_view(session, network_view_id, network_view,
              'participated': participated,
              'default': is_default}))
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_WRITER
+
 def update_network_view_id(session, old_id, new_id):
     (session.query(ib_models.InfobloxNetworkView).
      filter_by(id=old_id).
      update({'id': new_id}))
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_WRITER
+
 def add_network_view(session, network_view_id, network_view, grid_id,
                      authority_member_id, shared, dns_view,
                      internal_network_view, internal_dns_view, participated,
@@ -281,8 +264,7 @@ def add_network_view(session, network_view_id, network_view, grid_id,
     session.flush()
     return network_view
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_WRITER
+
 def remove_network_views(session, ids):
     if ids and isinstance(ids, list):
         with session.begin(subtransactions=True):
@@ -290,8 +272,7 @@ def remove_network_views(session, ids):
             q = q.filter(ib_models.InfobloxNetworkView.id.in_(ids))
             q.delete(synchronize_session=False)
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_WRITER
+
 def remove_network_views_by_names(session, network_views, grid_id):
     if network_views and isinstance(network_views, list):
         with session.begin(subtransactions=True):
@@ -303,8 +284,6 @@ def remove_network_views_by_names(session, network_views, grid_id):
 
 
 # Network View Mapped to Neutron
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_READER
 def get_network_view_mappings(session, network_view_id=None, network_id=None,
                               subnet_id=None):
     q = session.query(ib_models.InfobloxNetworkViewMapping)
@@ -325,8 +304,7 @@ def get_network_view_mappings(session, network_view_id=None, network_id=None,
                  sub_qry))
     return q.all()
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_WRITER
+
 def associate_network_view(session, network_view_id, network_id, subnet_id):
     # check if network and subnet level mapping exists
     q = session.query(ib_models.InfobloxNetworkViewMapping)
@@ -339,8 +317,7 @@ def associate_network_view(session, network_view_id, network_id, subnet_id):
             subnet_id=subnet_id)
         session.add(network_view_mapping)
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_WRITER
+
 def dissociate_network_view(session, network_id, subnet_id):
     with session.begin(subtransactions=True):
         q = session.query(ib_models.InfobloxNetworkViewMapping)
@@ -349,8 +326,6 @@ def dissociate_network_view(session, network_id, subnet_id):
 
 
 # Mapping Conditions
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_READER
 def get_mapping_conditions(session, network_view_id=None, grid_id=None,
                            neutron_object_name=None,
                            neutron_object_value=None):
@@ -372,8 +347,7 @@ def get_mapping_conditions(session, network_view_id=None, grid_id=None,
                      sub_qry))
     return q.all()
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_WRITER
+
 def add_mapping_condition(session, network_view_id, neutron_object_name,
                           neutron_object_value):
     mapping_condition = ib_models.InfobloxMappingCondition(
@@ -383,8 +357,7 @@ def add_mapping_condition(session, network_view_id, neutron_object_name,
     session.add(mapping_condition)
     return mapping_condition
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_WRITER
+
 def add_mapping_conditions(session, network_view_id, neutron_object_name,
                            neutron_object_values):
     mapping_conditions = []
@@ -399,8 +372,7 @@ def add_mapping_conditions(session, network_view_id, neutron_object_name,
             mapping_conditions.append(mapping_condition)
     return mapping_conditions
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_WRITER
+
 def remove_mapping_condition(session, network_view_id, neutron_object_name,
                              neutron_object_value):
     with session.begin(subtransactions=True):
@@ -413,8 +385,7 @@ def remove_mapping_condition(session, network_view_id, neutron_object_name,
                      neutron_object_value)
         q.delete(synchronize_session=False)
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_WRITER
+
 def remove_mapping_conditions(session, network_view_id, neutron_object_name,
                               neutron_object_values):
     if network_view_id:
@@ -433,8 +404,6 @@ def remove_mapping_conditions(session, network_view_id, neutron_object_name,
 
 
 # Mapping Members
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_WRITER
 def get_mapping_members(session, network_view_id=None, member_id=None,
                         grid_id=None, mapping_relation=None):
     q = session.query(ib_models.InfobloxMappingMember)
@@ -454,8 +423,7 @@ def get_mapping_members(session, network_view_id=None, member_id=None,
                      sub_qry))
     return q.all()
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_WRITER
+
 def add_mapping_member(session, network_view_id, member_id, mapping_relation):
     mapping_member = ib_models.InfobloxMappingMember(
         network_view_id=network_view_id,
@@ -464,16 +432,14 @@ def add_mapping_member(session, network_view_id, member_id, mapping_relation):
     session.add(mapping_member)
     return mapping_member
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_WRITER
+
 def update_mapping_member(session, network_view_id, member_id,
                           mapping_relation):
     session.query(ib_models.InfobloxMappingMember).\
         filter_by(network_view_id=network_view_id, member_id=member_id).\
         update({'mapping_relation': mapping_relation})
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_WRITER
+
 def remove_mapping_member(session, network_view_id, member_id):
     with session.begin(subtransactions=True):
         q = session.query(ib_models.InfobloxMappingMember)
@@ -482,8 +448,6 @@ def remove_mapping_member(session, network_view_id, member_id):
 
 
 # Member Reservation
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_READER
 def get_next_authority_member_for_ipam(session, grid_id):
     q = (session.query(
          ib_models.InfobloxGridMember,
@@ -503,8 +467,7 @@ def get_next_authority_member_for_ipam(session, grid_id):
     authority_member = res[0]
     return authority_member
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_READER
+
 def get_next_authority_member_for_dhcp(session, grid_id):
     q = (session.query(ib_models.InfobloxGridMember).
          outerjoin(ib_models.InfobloxMappingMember,
@@ -525,8 +488,7 @@ def get_next_authority_member_for_dhcp(session, grid_id):
     authority_member = q.first()
     return authority_member
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_READER
+
 def get_next_dhcp_member(session, grid_id, use_gm=True):
     """Get a next available dhcp member.
 
@@ -557,8 +519,6 @@ def get_next_dhcp_member(session, grid_id, use_gm=True):
 
 
 # Service Member Management
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_READER
 def get_service_members(session, network_view_id=None, member_id=None,
                         grid_id=None, service=None):
     q = session.query(ib_models.InfobloxServiceMember)
@@ -575,8 +535,7 @@ def get_service_members(session, network_view_id=None, member_id=None,
         q = q.filter(ib_models.InfobloxServiceMember.member_id.in_(sub_qry))
     return q.all()
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_WRITER
+
 def add_service_member(session, network_view_id, member_id, service):
     service_member = ib_models.InfobloxServiceMember(
         network_view_id=network_view_id,
@@ -585,8 +544,7 @@ def add_service_member(session, network_view_id, member_id, service):
     session.add(service_member)
     return service_member
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_WRITER
+
 def remove_service_member(session, network_view_id, member_id=None,
                           service=None):
     with session.begin(subtransactions=True):
@@ -600,8 +558,7 @@ def remove_service_member(session, network_view_id, member_id=None,
             q = q.filter(ib_models.InfobloxServiceMember.service == service)
         q.delete(synchronize_session=False)
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_WRITER
+
 def remove_service_members(session, network_view_id, member_ids):
     with session.begin(subtransactions=True):
         q = session.query(ib_models.InfobloxServiceMember)
@@ -614,8 +571,6 @@ def remove_service_members(session, network_view_id, member_ids):
 
 
 # Operational Setting Management
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_WRITER
 def add_operation_type(session, op_type, op_value):
     operation = ib_models.InfobloxOperation(
         op_type=op_type,
@@ -623,8 +578,7 @@ def add_operation_type(session, op_type, op_value):
     session.add(operation)
     return operation
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_WRITER
+
 def get_last_sync_time(session):
     q = session.query(ib_models.InfobloxOperation)
     op_row = q.filter_by(op_type='last_sync_time').first()
@@ -635,8 +589,7 @@ def get_last_sync_time(session):
         return None
     return datetime.strptime(op_row.op_value, "%Y-%m-%d %H:%M:%S")
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_WRITER
+
 def record_last_sync_time(session, sync_time=None):
     if sync_time is None:
         sync_time_str = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
@@ -649,32 +602,26 @@ def record_last_sync_time(session, sync_time=None):
 
 
 # Neutron General Queries
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_READER
 def get_subnets_by_network_id(session, network_id):
     q = session.query(models_v2.Subnet).filter_by(network_id=network_id)
     return q.all()
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_READER
+
 def get_subnet_by_id(session, subnet_id):
     q = session.query(models_v2.Subnet).filter_by(id=subnet_id)
     return q.one()
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_READER
+
 def get_subnets_by_tenant_id(session, tenant_id):
     q = session.query(models_v2.Subnet).filter_by(tenant_id=tenant_id)
     return q.all()
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_READER
+
 def get_port_by_id(session, port_id):
     q = session.query(models_v2.Port)
     return q.filter_by(id=port_id).one()
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_READER
+
 def get_subnet_dhcp_port_address(session, subnet_id):
     dhcp_port = (session.query(models_v2.IPAllocation).
                  filter_by(subnet_id=subnet_id).
@@ -685,20 +632,17 @@ def get_subnet_dhcp_port_address(session, subnet_id):
         return dhcp_port.ip_address
     return None
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_READER
+
 def get_floatingip_by_id(session, floatingip_id):
     q = session.query(l3_db.FloatingIP)
     return q.filter_by(id=floatingip_id).one()
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_READER
+
 def get_floatingip_by_ip_address(session, floatingip):
     q = session.query(l3_db.FloatingIP)
     return q.filter_by(floating_ip_address=floatingip).one()
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_READER
+
 def get_address_scope_by_subnetpool_id(session, subnetpool_id):
     sub_qry = (session.query(models_v2.SubnetPool.address_scope_id).
                filter(models_v2.SubnetPool.id == subnetpool_id))
@@ -706,31 +650,27 @@ def get_address_scope_by_subnetpool_id(session, subnetpool_id):
          filter(address_scope_db.AddressScope.id.in_(sub_qry)))
     return q.first()
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_READER
+
 def is_last_subnet(session, subnet_id):
     q = (session.query(models_v2.Subnet).
          filter(models_v2.Subnet.id != subnet_id))
     return q.count() == 0
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_READER
+
 def is_last_subnet_in_network(session, subnet_id, network_id):
     q = (session.query(models_v2.Subnet).
          filter(models_v2.Subnet.id != subnet_id,
                 models_v2.Subnet.network_id == network_id))
     return q.count() == 0
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_READER
+
 def is_last_subnet_in_tenant(session, subnet_id, tenant_id):
     q = (session.query(models_v2.Subnet).
          filter(models_v2.Subnet.id != subnet_id,
                 models_v2.Subnet.tenant_id == tenant_id))
     return q.count() == 0
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_READER
+
 def is_last_subnet_in_private_networks(session, subnet_id):
     sub_qry = session.query(external_net_db.ExternalNetwork.network_id)
     q = (session.query(models_v2.Subnet.id).
@@ -738,8 +678,7 @@ def is_last_subnet_in_private_networks(session, subnet_id):
          filter(~models_v2.Subnet.network_id.in_(sub_qry)))
     return q.count() == 0
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_READER
+
 def is_last_subnet_in_address_scope(session, subnet_id):
     q = (session.query(models_v2.Subnet).
          filter(models_v2.Subnet.subnetpool_id == models_v2.SubnetPool.id).
@@ -747,8 +686,7 @@ def is_last_subnet_in_address_scope(session, subnet_id):
          filter(models_v2.Subnet.id != subnet_id))
     return q.count() == 0
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_WRITER
+
 def add_tenant(session, tenant_id, tenant_name):
     tenant = ib_models.InfobloxTenant(
         tenant_id=tenant_id,
@@ -756,8 +694,7 @@ def add_tenant(session, tenant_id, tenant_name):
     session.add(tenant)
     return tenant
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_WRITER
+
 def add_or_update_tenant(session, tenant_id, tenant_name):
     db_tenant = get_tenant(session, tenant_id)
     if db_tenant is None:
@@ -765,29 +702,25 @@ def add_or_update_tenant(session, tenant_id, tenant_name):
     elif db_tenant.tenant_name != tenant_name:
         db_tenant.tenant_name = tenant_name
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_READER
+
 def get_tenant(session, tenant_id):
     q = session.query(ib_models.InfobloxTenant)
     return q.filter_by(tenant_id=tenant_id).first()
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_READER
+
 def get_tenants(session, tenant_ids=None):
     q = session.query(ib_models.InfobloxTenant)
     if tenant_ids:
         q = q.filter(ib_models.InfobloxTenant.tenant_id.in_(tenant_ids))
     return q.all()
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_READER
+
 def get_external_subnets(session):
     sub_qry = session.query(external_net_db.ExternalNetwork.network_id)
     return (session.query(models_v2.Subnet).
             filter(models_v2.Subnet.network_id.in_(sub_qry))).all()
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_READER
+
 def get_floatingip_ports(session, floating_ips, floating_network_id):
     q = (session.query(models_v2.Port.id,
                        models_v2.Port.device_id,
@@ -798,8 +731,7 @@ def get_floatingip_ports(session, floating_ips, floating_network_id):
          filter(l3_db.FloatingIP.floating_ip_address.in_(floating_ips)))
     return q.all()
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_WRITER
+
 def add_instance(session, instance_id, instance_name):
     instance = ib_models.InfobloxInstance(
         instance_id=instance_id,
@@ -807,8 +739,7 @@ def add_instance(session, instance_id, instance_name):
     session.add(instance)
     return instance
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_WRITER
+
 def add_or_update_instance(session, instance_id, instance_name):
     db_instance = get_instance(session, instance_id)
     if db_instance is None:
@@ -816,30 +747,26 @@ def add_or_update_instance(session, instance_id, instance_name):
     elif db_instance.instance_name != instance_name:
         db_instance.instance_name = instance_name
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_READER
+
 def get_instance(session, instance_id):
     q = session.query(ib_models.InfobloxInstance)
     return q.filter_by(instance_id=instance_id).first()
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_WRITER
+
 def remove_instance(session, instance_id):
     with session.begin(subtransactions=True):
         q = session.query(ib_models.InfobloxInstance)
         q = q.filter_by(instance_id=instance_id)
         q.delete(synchronize_session=False)
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_READER
+
 def get_instances(session, instance_ids=None):
     q = session.query(ib_models.InfobloxInstance)
     if instance_ids:
         q = q.filter(ib_models.InfobloxInstance.instance_id.in_(instance_ids))
     return q.all()
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_WRITER
+
 def add_network(session, network_id, network_name):
     network = ib_models.InfobloxNetwork(
         network_id=network_id,
@@ -847,8 +774,7 @@ def add_network(session, network_id, network_name):
     session.add(network)
     return network
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_WRITER
+
 def add_or_update_network(session, network_id, network_name):
     db_network = get_network(session, network_id)
     if db_network is None:
@@ -856,14 +782,12 @@ def add_or_update_network(session, network_id, network_name):
     elif db_network.network_name != network_name:
         db_network.network_name = network_name
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_WRITER
+
 def get_network(session, network_id):
     q = session.query(ib_models.InfobloxNetwork)
     return q.filter_by(network_id=network_id).first()
 
-@db_api.retry_if_session_inactive()
-@db_api.CONTEXT_WRITER
+
 def remove_network(session, network_id):
     with session.begin(subtransactions=True):
         q = session.query(ib_models.InfobloxNetwork)
